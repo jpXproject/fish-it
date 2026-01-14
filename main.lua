@@ -339,7 +339,7 @@ do
     local lastToggleTime = 0
     local toggleDebounce = 1 -- seconds
     
-    function ToggleAutoTimedEvent(state, uiParagraph)
+    local function ToggleAutoTimedEvent(state, uiParagraph)
         local now = tick()
         if now - lastToggleTime < toggleDebounce then
             return
@@ -427,6 +427,8 @@ do
             end
         end)
     end
+    
+    _G.ToggleAutoTimedEvent = ToggleAutoTimedEvent
 end
 
 -- =====================================================
@@ -598,7 +600,7 @@ do
     end
     
     -- Start auto weather
-    function StartAutoWeather()
+    local function StartAutoWeather()
         if SettingsState.AutoWeather.Active then 
             warn("[AUTO WEATHER] Already active")
             return 
@@ -640,7 +642,7 @@ do
     end
     
     -- Stop auto weather
-    function StopAutoWeather()
+    local function StopAutoWeather()
         SettingsState.AutoWeather.Active = false
         WeatherState.Active = false
         
@@ -651,6 +653,9 @@ do
         
         warn("[AUTO WEATHER] Disabled")
     end
+    
+    _G.StartAutoWeather = StartAutoWeather
+    _G.StopAutoWeather = StopAutoWeather
 end
 
 -- =====================================================
@@ -1676,12 +1681,12 @@ do
         AutoPropsEvent.CurrentEvent = nil
     end
     
-    function SetAutoEventSelection(eventName)
+    local function SetAutoEventSelection(eventName)
         AutoPropsEvent.SelectedEvent = eventName
         print("[AUTO EVENT] Selected:", eventName)
     end
     
-    function GetAvailableAutoEvents()
+    local function GetAvailableAutoEvents()
         local found, list = {}, {}
         for _, props in ipairs(GetValidPropsContainers()) do
             for _, child in ipairs(props:GetChildren()) do
@@ -1695,7 +1700,7 @@ do
         return list
     end
     
-    function EnableAutoEventProps()
+    local function EnableAutoEventProps()
         if AutoPropsEvent.Enabled then return end
         if not AutoPropsEvent.SelectedEvent then return end
         
@@ -1729,7 +1734,7 @@ do
         end))
     end
     
-    function DisableAutoEventProps()
+    local function DisableAutoEventProps()
         if not AutoPropsEvent.Enabled then return end
         
         AutoPropsEvent.Enabled = false
@@ -1746,7 +1751,7 @@ do
         print("[AUTO EVENT] DISABLED")
     end
     
-    function TeleportOnlyToEvent()
+    local function TeleportOnlyToEvent()
         if not AutoPropsEvent.SelectedEvent then return false end
         
         for _, props in ipairs(GetValidPropsContainers()) do
@@ -1759,6 +1764,12 @@ do
         end
         return false
     end
+    
+    _G.SetAutoEventSelection = SetAutoEventSelection
+    _G.GetAvailableAutoEvents = GetAvailableAutoEvents
+    _G.EnableAutoEventProps = EnableAutoEventProps
+    _G.DisableAutoEventProps = DisableAutoEventProps
+    _G.TeleportOnlyToEvent = TeleportOnlyToEvent
 end
 
 -- =====================================================
@@ -2063,7 +2074,7 @@ do
     -------------------------------------------------------
     -- CONTROLLER
     -------------------------------------------------------
-    function StartFishWebhook()
+    local function StartFishWebhook()
         if SettingsState.WebhookFish.Active then 
             print("[WEBHOOK] Already active")
             return 
@@ -2111,7 +2122,7 @@ do
         })
     end
     
-    function StopFishWebhook()
+    local function StopFishWebhook()
         if not SettingsState.WebhookFish.Active then return end
         
         SettingsState.WebhookFish.Active = false
@@ -2124,6 +2135,9 @@ do
             Duration = 3 
         })
     end
+    
+    _G.StartFishWebhook = StartFishWebhook
+    _G.StopFishWebhook = StopFishWebhook
 end
 
 -- =====================================================
@@ -2292,7 +2306,7 @@ do
     -------------------------------------------------------
     -- PUBLIC API
     -------------------------------------------------------
-    function TogglePerformanceHUD(state)
+    local function TogglePerformanceHUD(state)
         HudState.Visible = state
         Gui.Enabled = state
         
@@ -2315,6 +2329,8 @@ do
             print("[PERFORMANCE HUD] Deactivated")
         end
     end
+    
+    _G.TogglePerformanceHUD = TogglePerformanceHUD
 end
 
 -- =====================================================
@@ -3049,14 +3065,18 @@ do
             SettingsState.AutoWeather.Active = state
             
             if state then
-                StartAutoWeather()
+                if _G.StartAutoWeather then
+                    _G.StartAutoWeather()
+                end
                 WindUI:Notify({
                     Title = "Weather", 
                     Content = "Monitor started", 
                     Duration = 2
                 })
             else
-                StopAutoWeather()
+                if _G.StopAutoWeather then
+                    _G.StopAutoWeather()
+                end
                 WindUI:Notify({
                     Title = "Weather", 
                     Content = "Monitor stopped", 
@@ -3407,7 +3427,9 @@ do
         Icon = "monitor",
         Value = false,
         Callback = function(state)
-            TogglePerformanceHUD(state)
+            if _G.TogglePerformanceHUD then
+                _G.TogglePerformanceHUD(state)
+            end
             WindUI:Notify({
                 Title = "Performance HUD", 
                 Content = state and "Enabled" or "Disabled", 
@@ -3589,9 +3611,13 @@ do
         Value = false,
         Callback = function(state)
             if state then
-                StartFishWebhook()
+                if _G.StartFishWebhook then
+                    _G.StartFishWebhook()
+                end
             else
-                StopFishWebhook()
+                if _G.StopFishWebhook then
+                    _G.StopFishWebhook()
+                end
             end
         end
     })
