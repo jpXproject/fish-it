@@ -1,22 +1,24 @@
--- Fish It Premium Exploit Suite
--- Advanced UI dengan Drag, Minimize, Toggle
+-- XcodeHub Premium Exploit Suite
+-- Fixed Fishing Features + Enhanced UI
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- UI Library
+-- Load Rayfield UI Library
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Create Main Window
 local Window = Rayfield:CreateWindow({
-    Name = "🐟 FISH IT PREMIUM EXPLOIT",
-    LoadingTitle = "Loading Premium Suite...",
-    LoadingSubtitle = "by Exploit Assistant",
+    Name = "XcodeHub | Fish It",
+    LoadingTitle = "XcodeHub Loading...",
+    LoadingSubtitle = "Premium Fishing Suite",
     ConfigurationSaving = {
         Enabled = true,
-        FolderName = "FishItExploit",
-        FileName = "Config"
+        FolderName = "XcodeHubConfig",
+        FileName = "FishIt"
     },
     Discord = {
         Enabled = false,
@@ -24,43 +26,119 @@ local Window = Rayfield:CreateWindow({
         RememberJoins = true
     },
     KeySystem = false,
-    KeySettings = {
-        Title = "Fish It",
-        Subtitle = "Key System",
-        Note = "No key required",
-        FileName = "FishItKey",
-        SaveKey = true,
-        GrabKeyFromSite = false,
-        Key = {"EXPLOIT2024"}
-    }
 })
 
+-- VARIABLES
+local fishingActive = false
+local notificationActive = true
+local lastCatch = ""
+
+-- FIXED FISHING FUNCTION
+local function FindFishingRemotes()
+    local remotes = {}
+    
+    -- Check ReplicatedStorage
+    for _, obj in pairs(ReplicatedStorage:GetDescendants()) do
+        if obj:IsA("RemoteEvent") or obj:IsA("RemoteFunction") then
+            if string.find(obj.Name:lower(), "fish") or 
+               string.find(obj.Name:lower(), "catch") or
+               string.find(obj.Name:lower(), "rod") or
+               string.find(obj.Name:lower(), "reel") then
+                table.insert(remotes, obj)
+            end
+        end
+    end
+    
+    -- Check workspace
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("RemoteEvent") or obj:IsA("RemoteFunction") then
+            if string.find(obj.Name:lower(), "fish") then
+                table.insert(remotes, obj)
+            end
+        end
+    end
+    
+    return remotes
+end
+
+-- FIXED AUTO FISHING
+local function StartAutoFishing()
+    fishingActive = true
+    
+    spawn(function()
+        while fishingActive do
+            -- Wait for rod
+            local rod = nil
+            repeat
+                for _, tool in pairs(LocalPlayer.Backpack:GetChildren()) do
+                    if string.find(tool.Name:lower(), "rod") or 
+                       string.find(tool.Name:lower(), "fishing") then
+                        rod = tool
+                        break
+                    end
+                end
+                wait(0.5)
+            until rod or not fishingActive
+            
+            if rod and fishingActive then
+                -- Equip rod
+                LocalPlayer.Character.Humanoid:EquipTool(rod)
+                wait(0.5)
+                
+                -- Cast fishing
+                mouse1click()
+                wait(1)
+                
+                -- Try to catch
+                local remotes = FindFishingRemotes()
+                for _, remote in pairs(remotes) do
+                    pcall(function()
+                        if remote:IsA("RemoteEvent") then
+                            remote:FireServer()
+                        elseif remote:IsA("RemoteFunction") then
+                            remote:InvokeServer()
+                        end
+                    end)
+                end
+                
+                -- Wait before next cast
+                wait(2)
+            end
+        end
+    end)
+end
+
+-- NOTIFICATION SYSTEM
+local function SendNotification(title, message)
+    if notificationActive then
+        Rayfield:Notify({
+            Title = title,
+            Content = message,
+            Duration = 3,
+            Image = 7733960981,
+        })
+    end
+end
+
 -- MAIN TAB
-local MainTab = Window:CreateTab("Main Features", 4483362458)
+local MainTab = Window:CreateTab("Main", 4483362458)
 
 -- Anti-Staff Section
-local AntiStaffSection = MainTab:CreateSection("🛡️ Anti-Staff Protection")
+MainTab:CreateSection("🛡️ Protection")
 local antiStaffToggle = MainTab:CreateToggle({
-    Name = "Enable Anti-Staff",
+    Name = "Anti-Staff Protection",
     CurrentValue = false,
-    Flag = "AntiStaffToggle",
     Callback = function(Value)
         if Value then
             spawn(function()
                 while antiStaffToggle.CurrentValue do
-                    wait(math.random(30, 60))
+                    wait(math.random(45, 90))
                     pcall(function()
-                        local char = LocalPlayer.Character
-                        if char then
-                            -- Randomize appearance
-                            local shirt = char:FindFirstChild("Shirt")
-                            if shirt then
-                                shirt.ShirtTemplate = "rbxassetid://"..tostring(math.random(1000000, 9999999))
-                            end
-                            
-                            -- Fake ping
-                            game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:SetValue(math.random(50, 150))
-                        end
+                        -- Change display name temporarily
+                        local original = LocalPlayer.DisplayName
+                        LocalPlayer.DisplayName = "Player"..tostring(math.random(1000,9999))
+                        wait(5)
+                        LocalPlayer.DisplayName = original
                     end)
                 end
             end)
@@ -68,22 +146,19 @@ local antiStaffToggle = MainTab:CreateToggle({
     end,
 })
 
--- Anti-AFK Section
-local AntiAFKSection = MainTab:CreateSection("⏰ Anti-AFK System")
+-- Anti-AFK
 local antiAFKToggle = MainTab:CreateToggle({
-    Name = "Enable Anti-AFK",
+    Name = "Anti-AFK System",
     CurrentValue = false,
-    Flag = "AntiAFKToggle",
     Callback = function(Value)
         if Value then
             spawn(function()
                 while antiAFKToggle.CurrentValue do
-                    wait(120)
+                    wait(60)
                     pcall(function()
-                        local VirtualInput = game:GetService("VirtualInputManager")
-                        VirtualInput:SendKeyEvent(true, Enum.KeyCode.W, false, nil)
+                        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, nil)
                         wait(0.1)
-                        VirtualInput:SendKeyEvent(false, Enum.KeyCode.W, false, nil)
+                        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, nil)
                     end)
                 end
             end)
@@ -91,35 +166,42 @@ local antiAFKToggle = MainTab:CreateToggle({
     end,
 })
 
--- Fishing Tab
+-- FISHING TAB
 local FishingTab = Window:CreateTab("Fishing", 7733960981)
 
 -- Auto Fishing Section
-local AutoFishSection = FishingTab:CreateSection("🎣 Auto Fishing")
+FishingTab:CreateSection("🎣 Auto Fishing")
 local autoFishToggle = FishingTab:CreateToggle({
     Name = "Enable Auto Fishing",
     CurrentValue = false,
-    Flag = "AutoFishToggle",
+    Callback = function(Value)
+        fishingActive = Value
+        if Value then
+            SendNotification("XcodeHub", "Auto Fishing Started!")
+            StartAutoFishing()
+        else
+            SendNotification("XcodeHub", "Auto Fishing Stopped!")
+        end
+    end,
+})
+
+-- Instant Catch
+local instantCatchToggle = FishingTab:CreateToggle({
+    Name = "Instant Catch",
+    CurrentValue = false,
     Callback = function(Value)
         if Value then
             spawn(function()
-                while autoFishToggle.CurrentValue do
-                    wait(0.5)
+                while instantCatchToggle.CurrentValue do
+                    wait(0.2)
                     pcall(function()
-                        for _, tool in pairs(LocalPlayer.Backpack:GetChildren()) do
-                            if string.find(tool.Name:lower(), "rod") then
-                                tool:Activate()
-                                wait(0.3)
-                                
-                                -- Auto catch
-                                local remotes = {"FishCatch", "CatchFish", "FishingComplete"}
-                                for _, remote in pairs(remotes) do
-                                    local event = game:GetService("ReplicatedStorage"):FindFirstChild(remote)
-                                    if event then
-                                        event:FireServer(true, Vector3.new(0,0,0), math.huge)
-                                    end
+                        local remotes = FindFishingRemotes()
+                        for _, remote in pairs(remotes) do
+                            pcall(function()
+                                if remote.Name:find("Catch") then
+                                    remote:FireServer(true)
                                 end
-                            end
+                            end)
                         end
                     end)
                 end
@@ -128,82 +210,65 @@ local autoFishToggle = FishingTab:CreateToggle({
     end,
 })
 
--- Instant Catch Slider
-local instantCatchSlider = FishingTab:CreateSlider({
-    Name = "Catch Speed",
-    Range = {0.1, 5},
+-- Catch Speed
+local catchSpeedSlider = FishingTab:CreateSlider({
+    Name = "Fishing Speed",
+    Range = {0.1, 3},
     Increment = 0.1,
     Suffix = "seconds",
-    CurrentValue = 0.5,
-    Flag = "CatchSpeed",
+    CurrentValue = 1,
     Callback = function(Value)
-        getgenv().CatchSpeed = Value
+        getgenv().FishingDelay = Value
     end,
 })
 
--- Advanced Tab
-local AdvancedTab = Window:CreateTab("Advanced", 9753762469)
+-- UTILITY TAB
+local UtilityTab = Window:CreateTab("Utility", 6022668958)
 
--- ESP Section
-local ESPSection = AdvancedTab:CreateSection("👁️ Fish ESP")
-local fishESPToggle = AdvancedTab:CreateToggle({
-    Name = "Show Fish ESP",
-    CurrentValue = false,
-    Flag = "FishESPToggle",
+-- Player Utilities Section
+UtilityTab:CreateSection("👤 Player Utilities")
+
+-- WalkSpeed
+local walkSpeedSlider = UtilityTab:CreateSlider({
+    Name = "Walk Speed",
+    Range = {16, 200},
+    Increment = 1,
+    Suffix = "studs",
+    CurrentValue = 16,
     Callback = function(Value)
-        if Value then
-            spawn(function()
-                while fishESPToggle.CurrentValue do
-                    wait(1)
-                    pcall(function()
-                        for _, fish in pairs(workspace:GetChildren()) do
-                            if fish.Name:find("Fish") or fish.Name:find("fish") then
-                                if not fish:FindFirstChild("ESPBox") then
-                                    local box = Instance.new("BoxHandleAdornment")
-                                    box.Name = "ESPBox"
-                                    box.Adornee = fish
-                                    box.AlwaysOnTop = true
-                                    box.ZIndex = 10
-                                    box.Size = fish.Size
-                                    box.Transparency = 0.3
-                                    box.Color3 = Color3.fromRGB(0, 255, 0)
-                                    box.Parent = fish
-                                end
-                            end
-                        end
-                    end)
-                end
-            end)
-        else
-            pcall(function()
-                for _, obj in pairs(workspace:GetDescendants()) do
-                    if obj.Name == "ESPBox" then
-                        obj:Destroy()
-                    end
-                end
-            end)
-        end
+        pcall(function()
+            LocalPlayer.Character.Humanoid.WalkSpeed = Value
+        end)
     end,
 })
 
--- Auto-Sell Section
-local AutoSellSection = AdvancedTab:CreateSection("💰 Auto Sell")
-local autoSellToggle = AdvancedTab:CreateToggle({
-    Name = "Auto Sell Fish",
+-- Jump Power
+local jumpPowerSlider = UtilityTab:CreateSlider({
+    Name = "Jump Power",
+    Range = {50, 500},
+    Increment = 10,
+    Suffix = "power",
+    CurrentValue = 50,
+    Callback = function(Value)
+        pcall(function()
+            LocalPlayer.Character.Humanoid.JumpPower = Value
+        end)
+    end,
+})
+
+-- Noclip
+local noclipToggle = UtilityTab:CreateToggle({
+    Name = "Noclip",
     CurrentValue = false,
-    Flag = "AutoSellToggle",
     Callback = function(Value)
         if Value then
             spawn(function()
-                while autoSellToggle.CurrentValue do
-                    wait(5)
+                while noclipToggle.CurrentValue do
+                    wait()
                     pcall(function()
-                        -- Find sell stations
-                        for _, part in pairs(workspace:GetDescendants()) do
-                            if part.Name:find("Sell") or part.Name:find("sell") then
-                                firetouchinterest(LocalPlayer.Character.HumanoidRootPart, part, 0)
-                                wait(0.1)
-                                firetouchinterest(LocalPlayer.Character.HumanoidRootPart, part, 1)
+                        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                part.CanCollide = false
                             end
                         end
                     end)
@@ -213,109 +278,126 @@ local autoSellToggle = AdvancedTab:CreateToggle({
     end,
 })
 
--- Settings Tab
-local SettingsTab = Window:CreateTab("Settings", 6022668958)
+-- Infinite Jump
+local infJumpToggle = UtilityTab:CreateToggle({
+    Name = "Infinite Jump",
+    CurrentValue = false,
+    Callback = function(Value)
+        if Value then
+            UserInputService.JumpRequest:Connect(function()
+                pcall(function()
+                    LocalPlayer.Character.Humanoid:ChangeState("Jumping")
+                end)
+            end)
+        end
+    end,
+})
+
+-- Teleport to Fish
+UtilityTab:CreateButton({
+    Name = "Teleport to Nearest Fish",
+    Callback = function()
+        local nearestFish = nil
+        local nearestDist = math.huge
+        
+        for _, obj in pairs(workspace:GetChildren()) do
+            if obj.Name:find("Fish") or obj.Name:find("fish") then
+                local dist = (LocalPlayer.Character.HumanoidRootPart.Position - obj.Position).Magnitude
+                if dist < nearestDist then
+                    nearestDist = dist
+                    nearestFish = obj
+                end
+            end
+        end
+        
+        if nearestFish then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = nearestFish.CFrame + Vector3.new(0, 5, 0)
+            SendNotification("Teleport", "Teleported to fish!")
+        end
+    end,
+})
+
+-- SETTINGS TAB
+local SettingsTab = Window:CreateTab("Settings", 9753762469)
+
+-- Notifications Section
+SettingsTab:CreateSection("🔔 Notifications")
+local notifToggle = SettingsTab:CreateToggle({
+    Name = "Enable Notifications",
+    CurrentValue = true,
+    Callback = function(Value)
+        notificationActive = Value
+        SendNotification("Settings", "Notifications: " .. (Value and "ON" or "OFF"))
+    end,
+})
 
 -- UI Customization
-local UICustomSection = SettingsTab:CreateSection("🎨 UI Customization")
-local uiColorPicker = SettingsTab:CreateColorPicker({
+SettingsTab:CreateSection("🎨 UI Customization")
+local uiColor = SettingsTab:CreateColorPicker({
     Name = "UI Color",
-    Color = Color3.fromRGB(0, 170, 255),
-    Flag = "UIColor",
+    Color = Color3.fromRGB(0, 120, 215),
     Callback = function(Color)
         Window:ChangeColor(Color)
     end
 })
 
-local uiTransparencySlider = SettingsTab:CreateSlider({
-    Name = "UI Transparency",
-    Range = {0, 1},
-    Increment = 0.1,
-    Suffix = "",
-    CurrentValue = 0,
-    Flag = "UITransparency",
-    Callback = function(Value)
-        for _, obj in pairs(game.CoreGui:GetDescendants()) do
-            if obj:IsA("Frame") or obj:IsA("TextLabel") then
-                obj.BackgroundTransparency = Value
-            end
-        end
-    end,
-})
-
--- Performance Section
-local PerformanceSection = SettingsTab:CreateSection("⚡ Performance")
-local fpsToggle = SettingsTab:CreateToggle({
-    Name = "Show FPS Counter",
-    CurrentValue = false,
-    Flag = "FPSToggle",
-    Callback = function(Value)
-        if Value then
-            local fpsLabel = Instance.new("TextLabel")
-            fpsLabel.Name = "FPS_Counter"
-            fpsLabel.Text = "FPS: 60"
-            fpsLabel.Size = UDim2.new(0, 100, 0, 30)
-            fpsLabel.Position = UDim2.new(1, -110, 0, 10)
-            fpsLabel.BackgroundTransparency = 0.5
-            fpsLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-            fpsLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-            fpsLabel.Parent = game.CoreGui.Rayfield
-        
-            spawn(function()
-                while fpsLabel.Parent do
-                    wait(0.5)
-                    fpsLabel.Text = "FPS: "..tostring(math.floor(1/RunService.RenderStepped:Wait()))
-                end
-            end)
-        else
-            local counter = game.CoreGui:FindFirstChild("FPS_Counter")
-            if counter then counter:Destroy() end
-        end
-    end,
-})
-
--- Keybinds Section
-local KeybindSection = SettingsTab:CreateSection("⌨️ Keybinds")
-local uiToggleKeybind = SettingsTab:CreateKeybind({
+-- Keybinds
+SettingsTab:CreateSection("⌨️ Keybinds")
+SettingsTab:CreateKeybind({
     Name = "Toggle UI",
     CurrentKeybind = "RightControl",
     HoldToInteract = false,
-    Flag = "UIToggleKey",
-    Callback = function(Key)
+    Callback = function()
         Rayfield:Toggle()
     end,
 })
 
--- Watermark
-SettingsTab:CreateLabel("🐟 Fish It Premium v2.0")
-SettingsTab:CreateLabel("Status: ✅ Injected")
-SettingsTab:CreateLabel("Player: "..LocalPlayer.Name)
-
--- Notification system
-local NotificationsTab = Window:CreateTab("Notifications", 6026568198)
-
-NotificationsTab:CreateButton({
-    Name = "Test Notification",
+SettingsTab:CreateKeybind({
+    Name = "Toggle Auto Fish",
+    CurrentKeybind = "F",
+    HoldToInteract = false,
     Callback = function()
-        Rayfield:Notify({
-            Title = "Test Notification",
-            Content = "Fish It Exploit is working!",
-            Duration = 5,
-            Image = 7733960981,
-        })
+        autoFishToggle:Set(not autoFishToggle.CurrentValue)
     end,
 })
 
--- Initialize with notification
+-- Info Section
+SettingsTab:CreateSection("ℹ️ Information")
+SettingsTab:CreateLabel("XcodeHub v2.1")
+SettingsTab:CreateLabel("Player: " .. LocalPlayer.Name)
+SettingsTab:CreateLabel("Executor: Velocity")
+SettingsTab:CreateLabel("Game: Fish It")
+
+-- Auto-connect character for utilities
+LocalPlayer.CharacterAdded:Connect(function()
+    wait(1)
+    if walkSpeedSlider.CurrentValue > 16 then
+        pcall(function()
+            LocalPlayer.Character.Humanoid.WalkSpeed = walkSpeedSlider.CurrentValue
+        end)
+    end
+    if jumpPowerSlider.CurrentValue > 50 then
+        pcall(function()
+            LocalPlayer.Character.Humanoid.JumpPower = jumpPowerSlider.CurrentValue
+        end)
+    end
+end)
+
+-- INITIAL NOTIFICATION
 wait(1)
 Rayfield:Notify({
-    Title = "Fish It Premium Loaded",
-    Content = "All features are ready to use!",
+    Title = "XcodeHub Loaded!",
+    Content = "Premium Fishing Suite Ready",
     Duration = 5,
     Image = 7733960981,
 })
 
--- Auto-start features (optional)
-wait(2)
-antiAFKToggle:Set(true)
-antiStaffToggle:Set(true)
+-- DEBUG: Print found remotes (for testing)
+spawn(function()
+    wait(3)
+    local remotes = FindFishingRemotes()
+    print("[XcodeHub] Found " .. #remotes .. " fishing remotes")
+    for _, remote in pairs(remotes) do
+        print("  - " .. remote.Name .. " (" .. remote.ClassName .. ")")
+    end
+end)
